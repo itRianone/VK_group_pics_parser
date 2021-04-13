@@ -10,6 +10,11 @@ def url_to_id(group_url):
   url = group_url.replace('https://vk.com/', '')
   return url
 
+def humantime_to_unixtime(input_data):
+  date_time_obj = datetime.datetime.strptime(input_data, '%d.%m.%Y').date()
+  unixtime = time.mktime(date_time_obj.timetuple())
+  return unixtime
+
 def parse_posts(url):
   token = TOKEN
   version = 5.92
@@ -17,16 +22,12 @@ def parse_posts(url):
   all_posts = []
   offset = 0
   parse_day = input('C какого дня парсить? Формат ДД.ММ.ГГГГ:\n').strip()#'11.04.2021'
-  start = datetime.datetime.now()
-  #parse_day = input('Пикчи какого дня парсить? Формат ДД.ММ.ГГГГ:\n')
-
-  date_time_obj = datetime.datetime.strptime(parse_day, '%d.%m.%Y').date()
-  timestamp_begin = time.mktime(date_time_obj.timetuple())
-  #timestamp_enqd = '11.04.2021'
+  parse_begin = humantime_to_unixtime(parse_day)
   timestamp_enqd = input('До какого дня парсить? Формат ДД.ММ.ГГГГ:\n').strip()
-  date_time_obj2 = datetime.datetime.strptime(timestamp_enqd, '%d.%m.%Y').date()
-  timestamp_end = time.mktime(date_time_obj2.timetuple())
-  #print(timestamp_begin, timestamp_end )
+  parse_end = humantime_to_unixtime(timestamp_enqd)
+  start = datetime.datetime.now()
+
+  #print(parse_begin, timestamp_end )
 
   while offset < 10000:
     response = requests.get('https://api.vk.com/method/wall.get',
@@ -39,17 +40,15 @@ def parse_posts(url):
                             } 
     )
     data = response.json()['response']['items']
-    #print(data[]['date'], timestamp_begin)
-    #if data[10]['date'] < timestamp_begin:
+    #print(data[]['date'], parse_begin)
+    #if data[10]['date'] < parse_begin:
     #  break
     #print(data)
     for i in range(1, len(data)):
       #print(i)
 
-      if data[i]['date'] > timestamp_begin and data[i]['date'] < timestamp_end + 86000:
+      if data[i]['date'] > parse_begin and data[i]['date'] < parse_end + 86000:
         all_posts.append(data[i])
-
-
 
 
     offset += 300
@@ -89,11 +88,11 @@ def file_creater(all_posts):
       #print("Directory " + " already exists")
     #print()   
     print(f'Записано {posts_count} постов')
-    time.sleep(0.1)
+    #time.sleep(0.1)
 
 
 
 
-all_posts = parse_posts('https://vk.com/borsch')
+all_posts = parse_posts('https://vk.com/bfna40min')
 file_creater(all_posts)
 #all_posts = parse_posts('https://vk.com/ru9gag')
