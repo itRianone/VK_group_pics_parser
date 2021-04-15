@@ -21,15 +21,21 @@ def parse_posts(url):
   count = 100
   all_posts = []
   offset = 0
+
   parse_day = input('C какого дня парсить? Формат ДД.ММ.ГГГГ:\n').strip()#'11.04.2021'
+  global parse_begin
+
   parse_begin = humantime_to_unixtime(parse_day)
   timestamp_enqd = input('До какого дня парсить? Формат ДД.ММ.ГГГГ:\n').strip()
+
+  global parse_end
   parse_end = humantime_to_unixtime(timestamp_enqd)
+
   start = datetime.datetime.now()
 
   #print(parse_begin, timestamp_end )
 
-  while offset < 10000:
+  while True:
     response = requests.get('https://api.vk.com/method/wall.get',
                             params={
                               'access_token': token,
@@ -40,24 +46,34 @@ def parse_posts(url):
                             } 
     )
     data = response.json()['response']['items']
+    #all_posts.extend(data)
+    for post in data:
+      if post['date'] > parse_begin and post['date'] < (parse_end + 86000):
+        all_posts.append(post)
+      else:
+        pass  
+
+    if data[-1]['date'] < parse_begin:
+      break
+
+    time.sleep(0.5)
+    offset += 100
     #print(data[]['date'], parse_begin)
-    #if data[10]['date'] < parse_begin:
-    #  break
     #print(data)
-    for i in range(1, len(data)):
+    #for i in range(0, len(data)):
       #print(i)
 
-      if data[i]['date'] > parse_begin and data[i]['date'] < parse_end + 86000:
-        all_posts.append(data[i])
+      # if data[i]['date'] > parse_begin and data[i]['date'] < parse_end + 86000:
+      #   all_posts.append(data[i])
 
 
-    offset += 300
     #all_posts.extend(data)
-    time.sleep(0.5)
 
   end = datetime.datetime.now()
   total = end - start
-  print(total)
+
+  print(total, len(all_posts))
+
   return all_posts
 
 
@@ -78,11 +94,11 @@ def file_creater(all_posts):
     posts_count += 1
     try:
       os.makedirs(f'images/images_{url}')    
-      urllib.request.urlretrieve(img_url, f'images/images_{url}/img_name_{posts_count}.jpg')
+      urllib.request.urlretrieve(img_url, f'images/images_{url}/img_name_{post["id"]}.jpg')
       #print("Directory " + " Created ")
     except Exception as e:
       try:
-        urllib.request.urlretrieve(img_url, f'images/images_{url}/img_name_{posts_count}.jpg')
+        urllib.request.urlretrieve(img_url, f'images/images_{url}/img_name_{post["id"]}.jpg')
       except Exception as e:
         pass
       #print("Directory " + " already exists")
@@ -94,5 +110,5 @@ def file_creater(all_posts):
 
 
 all_posts = parse_posts('https://vk.com/bfna40min')
-file_creater(all_posts)
 #all_posts = parse_posts('https://vk.com/ru9gag')
+file_creater(all_posts)

@@ -2,3 +2,4 @@ images/*
 .env
 env/
 __pycache__/
+script copy.py
