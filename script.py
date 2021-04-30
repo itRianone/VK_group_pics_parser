@@ -56,7 +56,7 @@ def parse_posts(url):
     if data[-1]['date'] < parse_begin:
       break
 
-    time.sleep(0.5)
+    #time.sleep(0.5)
     offset += 100
     #print(data[]['date'], parse_begin)
     #print(data)
@@ -81,34 +81,69 @@ def file_creater(all_posts):
 
   posts_count = 0
   for post in all_posts:
+    img_url = []
     try:
       if post['attachments'][0]['type']:
-        img_url = post['attachments'][0]['photo']['sizes'][-1]['url']
-        #print(post['attachments'][0]['photo'])
+        if len(post['attachments']) > 1:
+          #print(len(post['attachments']))
+          for post_item_photo in post['attachments']:
+            #print(post_item_photo)
+            img_url.append(post_item_photo['photo']['sizes'][-1]['url'])
+            #print(img_url)
+        else:
+          img_url.append(post['attachments'][0]['photo']['sizes'][-1]['url'])
       else:
-        img_url = 'pass'
-    except:
+        pass
+        #img_url = 'pass'
+
+    except Exception as e:
+      #print(e)
       img_url = 'pass'
       pass
 
     posts_count += 1
-    try:
-      os.makedirs(f'images/images_{url}')    
-      urllib.request.urlretrieve(img_url, f'images/images_{url}/img_name_{post["id"]}.jpg')
-      #print("Directory " + " Created ")
-    except Exception as e:
+    if len(img_url) == 1:
+      
       try:
-        urllib.request.urlretrieve(img_url, f'images/images_{url}/img_name_{post["id"]}.jpg')
+        os.makedirs(f'images/images_{url}')    
+        urllib.request.urlretrieve(img_url[0], f'images/images_{url}/img_name_{post["id"]}.jpg')
       except Exception as e:
-        pass
-      #print("Directory " + " already exists")
-    #print()   
+        try:
+          urllib.request.urlretrieve(img_url[0], f'images/images_{url}/img_name_{post["id"]}.jpg')
+        except Exception as e:
+          pass
+
+    else:
+      count_files = 1
+      for photo in img_url:
+        #print(photo)
+        try:
+
+          os.makedirs(f'images/images_{url}')  
+        except:
+          try:
+            #print('1')     
+            os.makedirs(f'images/images_{url}/img_folder_{post["id"]}')    
+            urllib.request.urlretrieve(photo, f'images/images_{url}/img_folder_{post["id"]}/img_name_{post["id"]}_{count_files}.jpg')
+          except Exception as e:
+            #print(e)
+            #urllib.request.urlretrieve(photo, f'images/images_{url}/img_folder_{post["id"]}/img_name_{post["id"]}.jpg')
+
+            #continue
+            #print('2')     
+
+            try:
+              urllib.request.urlretrieve(photo, f'images/images_{url}/img_folder_{post["id"]}/img_name_{post["id"]}_{count_files}.jpg')
+              count_files += 1
+            except Exception as e:
+              pass
+
     print(f'Записано {posts_count} постов')
     #time.sleep(0.1)
 
 
 
 
-all_posts = parse_posts('https://vk.com/bfna40min')
-#all_posts = parse_posts('https://vk.com/ru9gag')
+all_posts = parse_posts('https://vk.com/sciencemem')
+# all_posts = parse_posts('https://vk.com/ru9gag')
 file_creater(all_posts)
